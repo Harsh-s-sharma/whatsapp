@@ -332,11 +332,12 @@
         let activeChat = null;
         let confirmationResult = null;
 
-        // Initialize reCAPTCHA
+        // Initialize reCAPTCHA with invisible size
         window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
-            'size': 'normal',
+            'size': 'invisible',
             'callback': (response) => {
                 // reCAPTCHA solved
+                console.log("reCAPTCHA solved");
             }
         }, auth);
 
@@ -382,10 +383,18 @@
             const fullPhoneNumber = `${countryCode}${phoneNumber.replace(/\D/g, '')}`;
 
             try {
+                // Reset reCAPTCHA before each attempt
+                window.recaptchaVerifier.render().then(function(widgetId) {
+                    grecaptcha.reset(widgetId);
+                });
+
                 confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, window.recaptchaVerifier);
                 document.getElementById('codeInput').style.display = 'block';
                 document.getElementById('verifyCodeBtn').style.display = 'block';
                 document.getElementById('sendCodeBtn').style.display = 'none';
+                
+                console.log('SMS sent successfully');
+                alert('Verification code sent to your phone!');
             } catch (error) {
                 console.error('Phone auth error:', error);
                 alert('Phone authentication failed: ' + error.message);
@@ -394,12 +403,16 @@
 
         document.getElementById('phoneForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!confirmationResult) return;
+            if (!confirmationResult) {
+                alert('Please request a verification code first');
+                return;
+            }
 
             const code = document.getElementById('codeInput').value;
             try {
                 const result = await confirmationResult.confirm(code);
                 currentUser = result.user;
+                console.log('Phone authentication successful');
             } catch (error) {
                 console.error('Code verification error:', error);
                 alert('Code verification failed: ' + error.message);
