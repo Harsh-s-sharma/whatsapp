@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="A WhatsApp clone web application with real-time chat and job listings">
+    <meta name="description" content="WhatsApp clone with job listings">
     <title>WhatsApp Clone with Jobs</title>
     <style>
         /* Base Styles */
@@ -18,18 +19,45 @@
             --secondary-color: #f0f2f5;
             --text-color: #333;
             --border-color: #dadada;
-            --shadow: 0 4px 8px rgba(0,0,0,0.1);
+            --message-sent: #d9fdd3;
+            --message-received: #fff;
+            --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --hover-color: #f1f1f1;
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background-color: #eae6df;
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f7f7;
             color: var(--text-color);
             line-height: 1.5;
             height: 100vh;
+            overflow: hidden;
         }
 
-        /* Container Layout */
+        .spinner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
         .container {
             display: flex;
             height: 100vh;
@@ -37,29 +65,42 @@
             margin: 0 auto;
             background: #fff;
             position: relative;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease-in-out;
         }
 
         .sidebar {
             width: 30%;
-            background: #fff;
+            background: var(--secondary-color);
             border-right: 1px solid var(--border-color);
+            padding: 1rem;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
         }
 
         .sidebar-header {
-            padding: 1rem;
-            background: var(--secondary-color);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            margin-bottom: 1rem;
+            background-color: var(--secondary-color);
+            padding: 1rem;
+            border-radius: 0.25rem;
         }
 
-        .sidebar-header img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
+        .sidebar-header button {
+            background-color: var(--primary-color);
+            border: none;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar-header button:hover {
+            background-color: #007e66;
         }
 
         .job-item {
@@ -67,341 +108,229 @@
             border-bottom: 1px solid var(--border-color);
             cursor: pointer;
             transition: background-color 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            border-radius: 8px;
         }
 
         .job-item:hover {
-            background: var(--secondary-color);
+            background: var(--hover-color);
         }
 
-        .job-filters {
-            padding: 1rem;
-            background-color: var(--secondary-color);
-            margin-top: 1rem;
+        .job-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
         }
 
-        .job-filters input, .job-filters select {
-            margin: 0.5rem 0;
-            padding: 0.5rem;
+        .job-type {
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .job-contact {
+            font-size: 0.9rem;
+            color: #666;
         }
 
         .job-details {
             flex: 1;
             padding: 2rem;
             background: #fff;
+            overflow-y: auto;
         }
 
-        /* Admin Panel */
-        .admin-panel {
-            padding: 1rem;
-            background: var(--secondary-color);
-            margin-top: 1rem;
-            border-radius: 0.5rem;
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* Profile Update Section */
-        .profile-update {
+        .modal-content {
+            background: #fff;
             padding: 2rem;
-            background: #fff;
-            max-width: 400px;
-            margin: 2rem auto;
-            border-radius: 0.5rem;
-        }
-
-        .profile-update input {
-            margin-bottom: 1rem;
-            padding: 0.75rem;
-            width: 100%;
-        }
-
-        /* Authentication */
-        .login-section {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            background: #fff;
-            padding: 2.5rem;
-            border-radius: 0.625rem;
+            border-radius: 8px;
+            width: 60%;
+            max-height: 80%;
+            overflow-y: auto;
             box-shadow: var(--shadow);
         }
 
-        .login-section form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            min-width: 300px;
-        }
-
-        .login-section input {
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            border-radius: 0.25rem;
-            font-size: 1rem;
-        }
-
-        .login-section button {
-            padding: 0.75rem 1.5rem;
-            background-color: var(--primary-color);
-            color: white;
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #fff;
             border: none;
-            border-radius: 0.25rem;
+            font-size: 1.5rem;
             cursor: pointer;
-            font-size: 1rem;
         }
 
+        .modal-close:hover {
+            background: #f0f2f5;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            padding: 20px;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: 40%;
+            }
+
+            .job-details {
+                height: 60%;
+            }
+        }
     </style>
 </head>
-<body>
-    <!-- Login Section -->
-    <div class="login-section" id="loginSection" role="dialog" aria-labelledby="loginTitle">
-        <h1 id="loginTitle">Login to View Jobs</h1>
-        
-        <form id="credentialsForm">
-            <input type="text" id="usernameInput" placeholder="Username or Email" required>
-            <input type="password" id="passwordInput" placeholder="Password" required>
-            <button type="submit">Sign In</button>
-        </form>
 
-        <p style="margin: 1rem 0;">Or</p>
-        <button id="googleLoginBtn">
-            <img src="https://www.google.com/favicon.ico" alt="" style="width: 20px; margin-right: 10px;">
-            Sign in with Google
-        </button>
-        
-        <p style="margin-top: 1rem;">
-            Need access? Contact us on WhatsApp for the password
-        </p>
+<body>
+    <!-- Loading Spinner -->
+    <div class="spinner" id="spinner"></div>
+
+    <!-- Modal for Job Details -->
+    <div class="modal" id="jobModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeModalBtn">&times;</button>
+            <div id="modalJobContent"></div>
+        </div>
     </div>
 
     <!-- Main Content -->
-    <div class="container" id="mainContent" style="display: none;">
+    <div class="container" id="mainContent">
+        <!-- Sidebar with Jobs List -->
         <div class="sidebar">
             <div class="sidebar-header">
                 <div class="user-profile">
-                    <img id="userPhoto" src="" alt="Profile Photo">
-                    <span id="userName"></span>
+                    <img id="userPhoto" src="" alt="Profile Photo" width="40">
+                    <span id="userName">User Name</span>
                 </div>
                 <button id="logoutBtn">Logout</button>
             </div>
-
-            <div class="job-filters">
-                <input type="text" id="searchInput" placeholder="Search jobs..." oninput="filterJobs()">
-                <select id="jobTypeFilter" onchange="filterJobs()">
-                    <option value="">All Types</option>
-                    <option value="Full-Time">Full-Time</option>
-                    <option value="Part-Time">Part-Time</option>
-                    <option value="Remote">Remote</option>
-                </select>
-                <label>
-                    <input type="checkbox" id="passwordProtectedFilter" onchange="filterJobs()"> 
-                    Only Password Protected Jobs
-                </label>
-            </div>
-
             <div class="jobs-list" id="jobsList">
                 <!-- Jobs will be populated here -->
             </div>
         </div>
 
+        <!-- Job Details Area -->
         <div class="job-details" id="jobDetails">
-            <!-- Job details will be shown here -->
-        </div>
-
-        <!-- Admin Panel (only visible to admin) -->
-        <div class="admin-panel" id="adminPanel" style="display: none;">
-            <h3>Add New Job</h3>
-            <form id="addJobForm" class="admin-form">
-                <input type="text" placeholder="Job Title" id="jobTitle" required>
-                <input type="text" placeholder="Job Type" id="jobType" required>
-                <textarea placeholder="Job Description" id="jobDescription" required></textarea>
-                <input type="tel" placeholder="Contact Number" id="contactNumber" required>
-                <div>
-                    <label>
-                        <input type="checkbox" id="requiresPassword"> Requires Password
-                    </label>
-                </div>
-                <input type="password" placeholder="Access Password" id="accessPassword">
-                <button type="submit">Add Job</button>
-            </form>
-        </div>
-
-        <!-- Profile Update Section -->
-        <div class="profile-update" id="profileUpdate" style="display: none;">
-            <h3>Update Profile</h3>
-            <form id="profileForm">
-                <input type="text" id="updateName" placeholder="Full Name">
-                <input type="email" id="updateEmail" placeholder="Email">
-                <button type="submit">Update Profile</button>
-            </form>
+            <div id="jobContent">Select a job to view details</div>
         </div>
     </div>
+
+    <!-- Floating Action Button (FAB) -->
+    <button class="fab" id="fabAddJobBtn" title="Add Job">+</button>
 
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getDatabase, ref, set, get, push, onValue, update } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-        import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCZU2eFGwZeRxbNHj7N6KqUO3i_p9ihCE0",
-            authDomain: "contact-us-f905e.firebaseapp.com",
-            databaseURL: "https://contact-us-f905e-default-rtdb.firebaseio.com",
-            projectId: "contact-us-f905e",
-            storageBucket: "contact-us-f905e.firebasestorage.app",
-            messagingSenderId: "1091436032191",
-            appId: "1:1091436032191:web:ba3bef74a860ad6451160a"
-        };
+        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getFirestore, collection, query, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID",
+        };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const database = getDatabase(app);
-        const provider = new GoogleAuthProvider();
+        const db = getFirestore(app);
 
-        let user = null;
+        const spinner = document.getElementById("spinner");
+        const mainContent = document.getElementById("mainContent");
+        const jobModal = document.getElementById("jobModal");
+        const fabAddJobBtn = document.getElementById("fabAddJobBtn");
+        const jobsList = document.getElementById("jobsList");
+        const jobDetails = document.getElementById("jobDetails");
 
-        // Authenticate user and handle session
-        onAuthStateChanged(auth, (currentUser) => {
-            if (currentUser) {
-                user = currentUser;
-                document.getElementById('loginSection').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'flex';
-                document.getElementById('userName').textContent = currentUser.displayName || currentUser.email;
-                document.getElementById('userPhoto').src = currentUser.photoURL || 'https://via.placeholder.com/40';
-                loadJobs();
-            } else {
-                user = null;
-                document.getElementById('loginSection').style.display = 'block';
-                document.getElementById('mainContent').style.display = 'none';
-            }
-        });
+        const showSpinner = () => {
+            spinner.style.display = "block";
+        };
 
-        // Google login
-        document.getElementById('googleLoginBtn').addEventListener('click', () => {
-            signInWithPopup(auth, provider).then((result) => {
-                const credential = GoogleAuthProvider.credentialFromResult(result);
-                const token = credential.accessToken;
-                const user = result.user;
-                alert(`Welcome, ${user.displayName}`);
-            }).catch((error) => {
-                console.error(error);
-            });
-        });
+        const hideSpinner = () => {
+            spinner.style.display = "none";
+        };
 
-        // Logout
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            signOut(auth).then(() => {
-                alert('Logged out');
-            }).catch((error) => {
-                console.error(error);
-            });
-        });
+        const openJobModal = (jobData) => {
+            const modalContent = document.getElementById("modalJobContent");
+            modalContent.innerHTML = `
+                <h2>${jobData.title}</h2>
+                <p>${jobData.description}</p>
+                <p><strong>Type:</strong> ${jobData.type}</p>
+                <p><strong>Contact:</strong> ${jobData.contact}</p>
+            `;
+            jobModal.style.display = "flex";
+        };
 
-        // Filter and display jobs
-        let allJobs = [];
-        function loadJobs() {
-            const jobsRef = ref(database, 'jobs');
-            onValue(jobsRef, (snapshot) => {
-                allJobs = [];
-                const jobsList = document.getElementById('jobsList');
-                jobsList.innerHTML = '';
+        const closeJobModal = () => {
+            jobModal.style.display = "none";
+        };
 
-                snapshot.forEach((childSnapshot) => {
-                    const job = {
-                        id: childSnapshot.key,
-                        ...childSnapshot.val()
-                    };
-                    allJobs.push(job);
-                });
+        document.getElementById("closeModalBtn").addEventListener("click", closeJobModal);
 
-                filterJobs(); // Apply filters after loading jobs
-            });
-        }
-
-        function filterJobs() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const jobType = document.getElementById('jobTypeFilter').value;
-            const passwordProtected = document.getElementById('passwordProtectedFilter').checked;
-
-            const filteredJobs = allJobs.filter(job => {
-                const matchesSearch = job.title.toLowerCase().includes(searchTerm) || job.description.toLowerCase().includes(searchTerm);
-                const matchesType = jobType === "" || job.type === jobType;
-                const matchesPassword = !passwordProtected || job.requiresPassword;
-
-                return matchesSearch && matchesType && matchesPassword;
-            });
-
-            displayJobs(filteredJobs);
-        }
-
-        function displayJobs(jobs) {
-            const jobsList = document.getElementById('jobsList');
-            jobsList.innerHTML = '';
-
-            jobs.forEach(job => {
-                const jobElement = createJobElement(job);
+        const fetchJobs = async () => {
+            showSpinner();
+            const q = query(collection(db, "jobs"));
+            const querySnapshot = await getDocs(q);
+            jobsList.innerHTML = "";
+            querySnapshot.forEach((doc) => {
+                const jobData = doc.data();
+                const jobElement = document.createElement("div");
+                jobElement.classList.add("job-item");
+                jobElement.innerHTML = `
+                    <div class="job-title">${jobData.title}</div>
+                    <div class="job-type">${jobData.type}</div>
+                    <div class="job-contact">${jobData.contact}</div>
+                `;
+                jobElement.addEventListener("click", () => openJobModal(jobData));
                 jobsList.appendChild(jobElement);
             });
-        }
+            hideSpinner();
+        };
 
-        function createJobElement(job) {
-            const div = document.createElement('div');
-            div.className = 'job-item';
-            div.innerHTML = `
-                <div class="job-title">${job.title}</div>
-                <div class="job-type">${job.type}</div>
-                <div class="job-contact">${job.contactNumber}</div>
-            `;
-            div.onclick = () => showJobDetails(job);
-            return div;
-        }
-
-        function showJobDetails(job) {
-            const jobDetails = document.getElementById('jobDetails');
-            jobDetails.innerHTML = `
-                <h3>${job.title}</h3>
-                <p>${job.description}</p>
-                <p><strong>Type:</strong> ${job.type}</p>
-                <p><strong>Contact:</strong> ${job.contactNumber}</p>
-                ${job.requiresPassword ? `<p><strong>Password Required</strong>: ${job.accessPassword}</p>` : ''}
-            `;
-        }
-
-        // Profile Update
-        document.getElementById('profileForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const name = document.getElementById('updateName').value;
-            const email = document.getElementById('updateEmail').value;
-
-            if (name && email && user) {
-                const userRef = ref(database, 'users/' + user.uid);
-                update(userRef, {
-                    name: name,
-                    email: email
-                }).then(() => {
-                    alert('Profile updated successfully');
-                    loadProfileData();
-                }).catch((error) => {
-                    alert('Error updating profile: ' + error.message);
-                });
-            }
+        fabAddJobBtn.addEventListener("click", () => {
+            alert("Add Job Feature Coming Soon");
         });
 
-        function loadProfileData() {
-            if (user) {
-                const userRef = ref(database, 'users/' + user.uid);
-                get(userRef).then(snapshot => {
-                    const userData = snapshot.val();
-                    document.getElementById('updateName').value = userData ? userData.name : '';
-                    document.getElementById('updateEmail').value = userData ? userData.email : '';
-                });
-            }
-        }
-
-        // Load the profile data
-        loadProfileData();
-
+        window.onload = async () => {
+            showSpinner();
+            await fetchJobs();
+            mainContent.style.display = "flex";
+        };
     </script>
 </body>
+
 </html>
