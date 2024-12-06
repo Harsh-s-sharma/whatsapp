@@ -7,7 +7,240 @@
     <meta name="description" content="WhatsApp clone with job listings, notifications, and admin management">
     <title>WhatsApp Clone - Admin Panel</title>
     <style>
-        /* Existing styles for layout */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Container for login and main content */
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        /* Login Section */
+        .login-section,
+        .main-content {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-section input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .login-section button,
+        .google-login-btn {
+            background-color: #25d366;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .login-section button:hover,
+        .google-login-btn:hover {
+            background-color: #128c7e;
+        }
+
+        .google-login-btn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .google-login-btn img {
+            width: 20px;
+            margin-right: 10px;
+        }
+
+        /* Main content after login */
+        .main-content {
+            display: none;
+            flex-direction: row;
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: #25d366;
+            padding: 20px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-radius: 10px;
+            margin-right: 20px;
+            position: relative;
+        }
+
+        .sidebar .user-profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar .user-profile img {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        .sidebar button {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .sidebar button:hover {
+            background-color: #c82333;
+        }
+
+        /* Jobs List */
+        .jobs-list {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            max-height: 70vh;
+        }
+
+        .job-item {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .job-item:hover {
+            background-color: #e2e2e2;
+        }
+
+        .job-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .job-type {
+            color: #555;
+        }
+
+        /* Job Details */
+        .job-details {
+            width: 100%;
+            max-width: 600px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-left: 20px;
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .admin-form input,
+        .admin-form textarea,
+        .admin-form button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .admin-form button {
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+        }
+
+        .admin-form button:hover {
+            background-color: #218838;
+        }
+
+        .notification-btn {
+            background-color: #ffc107;
+            padding: 10px;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        .notification-btn:hover {
+            background-color: #e0a800;
+        }
+
+        /* User Block/Unblock */
+        .user-status {
+            color: #888;
+            font-weight: bold;
+        }
+
+        .blocked {
+            color: red;
+        }
+
+        .active {
+            color: green;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+
+            .job-details {
+                margin-left: 0;
+            }
+        }
     </style>
 </head>
 
@@ -38,17 +271,34 @@
                 </div>
                 <button id="logoutBtn">Logout</button>
                 <div class="jobs-list" id="jobsList"></div>
-                <!-- Admin Panel for viewing all users -->
-                <div id="adminPanel" style="display: none;">
-                    <h3>Manage Users</h3>
-                    <div id="usersList"></div>
-                </div>
             </div>
 
             <!-- Job Details Section -->
             <div class="job-details" id="jobDetails">
                 <h2>Job Details</h2>
                 <div id="jobContent"></div>
+
+                <!-- Admin Panel for Managing Jobs -->
+                <div class="admin-panel" id="adminPanel" style="display: none;">
+                    <h3>Add New Job</h3>
+                    <form id="addJobForm" class="admin-form">
+                        <input type="text" id="jobTitle" placeholder="Job Title" required>
+                        <input type="text" id="jobType" placeholder="Job Type" required>
+                        <textarea id="jobDescription" placeholder="Job Description" required></textarea>
+                        <input type="tel" id="contactNumber" placeholder="Contact Number" required>
+                        <div>
+                            <label>
+                                <input type="checkbox" id="requiresPassword"> Requires Password
+                            </label>
+                        </div>
+                        <input type="password" id="accessPassword" placeholder="Access Password">
+                        <button type="submit">Add Job</button>
+                    </form>
+
+                    <h3>Send Notification</h3>
+                    <textarea id="notificationText" placeholder="Enter notification message" rows="4" required></textarea>
+                    <button id="sendNotificationBtn" class="notification-btn">Send Notification</button>
+                </div>
             </div>
         </div>
     </div>
@@ -56,7 +306,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+        import { getDatabase, ref, set, get, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
         import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
         
         const firebaseConfig = {
@@ -86,7 +336,6 @@
                     document.getElementById("userName").innerText = user.displayName;
                     document.getElementById("userPhoto").src = user.photoURL;
                     checkIfAdmin(user.email);
-                    saveUserInfo(user);
                     toggleContent(true);
                 })
                 .catch((error) => {
@@ -107,7 +356,6 @@
                     document.getElementById("userName").innerText = user.displayName;
                     document.getElementById("userPhoto").src = user.photoURL;
                     checkIfAdmin(user.email);
-                    saveUserInfo(user);
                     toggleContent(true);
                 })
                 .catch((error) => {
@@ -120,19 +368,7 @@
             if (email === 'admin@example.com') {
                 isAdmin = true;
                 document.getElementById("adminPanel").style.display = 'block';
-                loadUsers(); // Load all users for the admin
             }
-        }
-
-        // Save User Info to Firebase
-        function saveUserInfo(user) {
-            const userRef = ref(database, 'users/' + user.uid);
-            set(userRef, {
-                email: user.email,
-                displayName: user.displayName,
-                photoURL: user.photoURL,
-                status: 'active' // Default status
-            });
         }
 
         // Toggle Content Based on Authentication
@@ -146,6 +382,17 @@
                 document.getElementById("mainContent").style.display = "none";
             }
         }
+
+        // Logout Functionality
+        document.getElementById("logoutBtn").addEventListener("click", () => {
+            signOut(auth)
+                .then(() => {
+                    toggleContent(false);
+                })
+                .catch((error) => {
+                    alert('Logout failed: ' + error.message);
+                });
+        });
 
         // Load Jobs from Firebase
         function loadJobs() {
@@ -185,55 +432,20 @@
                 <p><strong>Type:</strong> ${job.type}</p>
                 <p><strong>Description:</strong> ${job.description}</p>
                 <p><strong>Contact:</strong> ${job.contactNumber}</p>
+                ${job.requiresPassword ? `<input type="password" id="jobPassword" placeholder="Enter password to view job details">` : ''}
             `;
-        }
 
-        // Logout Functionality
-        document.getElementById("logoutBtn").addEventListener("click", () => {
-            signOut(auth)
-                .then(() => {
-                    toggleContent(false);
-                })
-                .catch((error) => {
-                    alert('Logout failed: ' + error.message);
+            if (job.requiresPassword) {
+                document.getElementById('jobPassword').addEventListener('input', (e) => {
+                    const password = e.target.value;
+                    if (password === job.password) {
+                        jobContent.innerHTML += `<p><strong>Access Granted:</strong> You can view job details now.</p>`;
+                    } else {
+                        jobContent.innerHTML += `<p style="color: red;">Incorrect password. Please try again.</p>`;
+                    }
                 });
-        });
-
-        // Admin: Load all users
-        function loadUsers() {
-            const usersRef = ref(database, 'users');
-            onValue(usersRef, (snapshot) => {
-                const users = snapshot.val();
-                displayUsers(users);
-            });
-        }
-
-        // Admin: Display Users in Admin Panel
-        function displayUsers(users) {
-            const usersList = document.getElementById('usersList');
-            usersList.innerHTML = '';
-            for (let userId in users) {
-                const user = users[userId];
-                const userDiv = document.createElement('div');
-                userDiv.classList.add('user-item');
-                userDiv.innerHTML = `
-                    <div class="user-name">${user.displayName}</div>
-                    <div class="user-email">${user.email}</div>
-                    <div class="user-status">${user.status}</div>
-                    <button onclick="toggleBlockStatus('${userId}', '${user.status}')">${user.status === 'active' ? 'Block' : 'Unblock'}</button>
-                `;
-                usersList.appendChild(userDiv);
             }
         }
-
-        // Admin: Toggle Block/Unblock User
-        function toggleBlockStatus(userId, currentStatus) {
-            const userRef = ref(database, 'users/' + userId);
-            const newStatus = currentStatus === 'active' ? 'blocked' : 'active';
-            update(userRef, { status: newStatus });
-            loadUsers(); // Reload user list to reflect the status change
-        }
-
     </script>
 </body>
 
