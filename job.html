@@ -7,15 +7,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="A WhatsApp clone web application with real-time chat and job listings">
     <title>WhatsApp Clone with Jobs</title>
-    <style>
-        /* CSS Reset */
+
+      <style>
+        /* Base Styles */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        /* Base Styles */
         :root {
             --primary-color: #00a884;
             --secondary-color: #f0f2f5;
@@ -23,18 +23,43 @@
             --border-color: #dadada;
             --message-sent: #d9fdd3;
             --message-received: #fff;
-            --shadow: 0 4px 8px rgba(0,0,0,0.1);
+            --shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --hover-color: #f1f1f1;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #eae6df;
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f7f7;
             color: var(--text-color);
             line-height: 1.5;
             height: 100vh;
+            overflow: hidden;
         }
 
-        /* Layout */
+        .spinner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
         .container {
             display: flex;
             height: 100vh;
@@ -42,43 +67,42 @@
             margin: 0 auto;
             background: #fff;
             position: relative;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease-in-out;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 30%;
-            background: #fff;
+            background: var(--secondary-color);
             border-right: 1px solid var(--border-color);
+            padding: 1rem;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
         }
 
         .sidebar-header {
-            padding: 1rem;
-            background: var(--secondary-color);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            margin-bottom: 1rem;
+            background-color: var(--secondary-color);
+            padding: 1rem;
+            border-radius: 0.25rem;
         }
 
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+        .sidebar-header button {
+            background-color: var(--primary-color);
+            border: none;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
 
-        .user-profile img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        /* Jobs List */
-        .jobs-list {
-            flex: 1;
-            overflow-y: auto;
-            scrollbar-width: thin;
+        .sidebar-header button:hover {
+            background-color: #007e66;
         }
 
         .job-item {
@@ -86,15 +110,19 @@
             border-bottom: 1px solid var(--border-color);
             cursor: pointer;
             transition: background-color 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            border-radius: 8px;
         }
 
         .job-item:hover {
-            background: var(--secondary-color);
+            background: var(--hover-color);
         }
 
         .job-title {
             font-weight: bold;
             margin-bottom: 0.5rem;
+            font-size: 1.1rem;
         }
 
         .job-type {
@@ -108,95 +136,68 @@
             color: #666;
         }
 
-        /* Job Details Area */
         .job-details {
             flex: 1;
             padding: 2rem;
             background: #fff;
+            overflow-y: auto;
         }
 
-        .job-header {
-            margin-bottom: 2rem;
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
         }
 
-        .job-description {
-            line-height: 1.6;
-        }
-
-        /* Admin Panel */
-        .admin-panel {
-            padding: 1rem;
-            background: var(--secondary-color);
-            margin-top: 1rem;
-            border-radius: 0.5rem;
-        }
-
-        .admin-panel h3 {
-            margin-bottom: 1rem;
-        }
-
-        .admin-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .admin-form input,
-        .admin-form textarea {
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            border-radius: 0.25rem;
-        }
-
-        /* Authentication */
-        .login-section {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
+        .modal-content {
             background: #fff;
-            padding: 2.5rem;
-            border-radius: 0.625rem;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 60%;
+            max-height: 80%;
+            overflow-y: auto;
             box-shadow: var(--shadow);
         }
 
-        .login-section form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            min-width: 300px;
-        }
-
-        .login-section input {
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            border-radius: 0.25rem;
-            font-size: 1rem;
-        }
-
-        .login-section button {
-            padding: 0.75rem 1.5rem;
-            background-color: var(--primary-color);
-            color: white;
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #fff;
             border: none;
-            border-radius: 0.25rem;
+            font-size: 1.5rem;
             cursor: pointer;
-            font-size: 1rem;
         }
 
-        /* Password Protected Content */
-        .password-protected {
-            text-align: center;
-            padding: 2rem;
+        .modal-close:hover {
+            background: #f0f2f5;
         }
 
-        .password-form {
-            max-width: 300px;
-            margin: 0 auto;
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            padding: 20px;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease-in-out;
         }
 
-        /* Responsive Design */
+        .fab:hover {
+            transform: scale(1.1);
+        }
+
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -211,6 +212,7 @@
                 height: 60%;
             }
         }
+
     </style>
 </head>
 
