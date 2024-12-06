@@ -264,6 +264,11 @@
                     <input type="text" placeholder="Job Type" id="jobType" required>
                     <textarea placeholder="Job Description" id="jobDescription" required></textarea>
                     <input type="tel" placeholder="Contact Number" id="contactNumber" required>
+                    <div>
+                        <label>
+                            <input type="checkbox" id="requiresPassword"> Requires Password
+                        </label>
+                    </div>
                     <input type="password" placeholder="Access Password" id="accessPassword">
                     <button type="submit">Add Job</button>
                 </form>
@@ -280,7 +285,8 @@
             set, 
             get,
             push, 
-            onValue 
+            onValue,
+            update 
         } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
         import { 
             getAuth, 
@@ -367,7 +373,10 @@
                 jobsList.innerHTML = '';
                 
                 snapshot.forEach((childSnapshot) => {
-                    const job = childSnapshot.val();
+                    const job = {
+                        id: childSnapshot.key,
+                        ...childSnapshot.val()
+                    };
                     const jobElement = createJobElement(job);
                     jobsList.appendChild(jobElement);
                 });
@@ -393,27 +402,75 @@
                 jobContent.innerHTML = `
                     <div class="password-protected">
                         <h3>This job requires a password</h3>
-                        <form class="password-form" onsubmit="checkJobPassword(event, '${job.password}')">
+                        <form class="password-form" id="jobPasswordForm">
                             <input type="password" placeholder="Enter password" required>
                             <button type="submit">View Details</button>
                         </form>
                     </div>
                 `;
+
+                document.getElementById('jobPasswordForm').onsubmit = (e) => {
+                    e.preventDefault();
+                    const enteredPassword = e.target.querySelector('input').value;
+                    checkJobPassword(job, enteredPassword);
+                };
             } else {
-                jobContent.innerHTML = `
-                    <div class="job-header">
-                        <h2>${job.title}</h2>
-                        <p class="job-type">${job.type}</p>
-                        <p class="job-contact">Contact: ${job.contactNumber}</p>
-                    </div>
-                    <div class="job-description">
-                        ${job.description}
-                    </div>
-                `;
+                displayJobDetails(job);
+            }
+        }
+
+        function displayJobDetails(job) {
+            const jobContent = document.getElementById('jobContent');
+            jobContent.innerHTML = `
+                <div class="job-header">
+                    <h2>${job.title}</h2>
+                    <p class="job-type">${job.type}</p>
+                    <p class="job-contact">Contact: ${job.contactNumber}</p>
+                </div>
+                <div class="job-description">
+                    ${job.description}
+                </div>
+            `;
+
+            // Add password toggle button for admin
+            if (currentUser.email === ADMIN_EMAIL) {
+                const toggleBtn = document.createElement('button');
+                toggleBtn.textContent = job.requiresPassword ? 'Remove Password Protection' : 'Add Password Protection';
+                toggleBtn.onclick = () => togglePasswordProtection(job);
+                jobContent.appendChild(toggleBtn);
+            }
+        }
+
+        async function togglePasswordProtection(job) {
+            const newPassword = job.requiresPassword ? null : prompt('Enter password for protection:');
+            if (newPassword === null && !job.requiresPassword) return;
+
+            try {
+                await update(ref(database, `jobs/${job.id}`), {
+                    requiresPassword: !job.requiresPassword,
+                    password: newPassword || null
+                });
+                alert(job.requiresPassword ? 'Password protection removed' : 'Password protection added');
+            } catch (error) {
+                alert('Error updating password protection: ' + error.message);
+            }
+        }
+
+        function checkJobPassword(job, enteredPassword) {
+            if (enteredPassword === job.password) {
+                displayJobDetails(job);
+            } else {
+                alert('Incorrect password');
             }
         }
 
         // Admin functionality
+        document.getElementById('requiresPassword').addEventListener('change', (e) => {
+            const passwordInput = document.getElementById('accessPassword');
+            passwordInput.style.display = e.target.checked ? 'block' : 'none';
+            passwordInput.required = e.target.checked;
+        });
+
         document.getElementById('addJobForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -422,13 +479,14 @@
                 return;
             }
 
+            const requiresPassword = document.getElementById('requiresPassword').checked;
             const jobData = {
                 title: document.getElementById('jobTitle').value,
                 type: document.getElementById('jobType').value,
                 description: document.getElementById('jobDescription').value,
                 contactNumber: document.getElementById('contactNumber').value,
-                requiresPassword: !!document.getElementById('accessPassword').value,
-                password: document.getElementById('accessPassword').value,
+                requiresPassword: requiresPassword,
+                password: requiresPassword ? document.getElementById('accessPassword').value : null,
                 timestamp: Date.now()
             };
 
@@ -440,18 +498,6 @@
                 alert('Error adding job: ' + error.message);
             }
         });
-
-        // Password protection
-        window.checkJobPassword = function(event, correctPassword) {
-            event.preventDefault();
-            const enteredPassword = event.target.querySelector('input').value;
-            
-            if (enteredPassword === correctPassword) {
-                showJobDetails(job);
-            } else {
-                alert('Incorrect password');
-            }
-        };
     </script>
 </body>
 
