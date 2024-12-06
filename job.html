@@ -1,39 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="A WhatsApp clone web application with real-time chat and job listings">
     <title>WhatsApp Clone with Jobs</title>
     <style>
-        /* CSS Reset */
+        /* Base Styles */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        /* Base Styles */
         :root {
             --primary-color: #00a884;
             --secondary-color: #f0f2f5;
             --text-color: #333;
             --border-color: #dadada;
-            --message-sent: #d9fdd3;
-            --message-received: #fff;
             --shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: Arial, sans-serif;
             background-color: #eae6df;
             color: var(--text-color);
             line-height: 1.5;
             height: 100vh;
         }
 
-        /* Layout */
+        /* Container Layout */
         .container {
             display: flex;
             height: 100vh;
@@ -43,7 +39,6 @@
             position: relative;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 30%;
             background: #fff;
@@ -60,24 +55,11 @@
             justify-content: space-between;
         }
 
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .user-profile img {
+        .sidebar-header img {
             width: 40px;
             height: 40px;
             border-radius: 50%;
             object-fit: cover;
-        }
-
-        /* Jobs List */
-        .jobs-list {
-            flex: 1;
-            overflow-y: auto;
-            scrollbar-width: thin;
         }
 
         .job-item {
@@ -91,35 +73,21 @@
             background: var(--secondary-color);
         }
 
-        .job-title {
-            font-weight: bold;
-            margin-bottom: 0.5rem;
+        .job-filters {
+            padding: 1rem;
+            background-color: var(--secondary-color);
+            margin-top: 1rem;
         }
 
-        .job-type {
-            color: var(--primary-color);
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
+        .job-filters input, .job-filters select {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
         }
 
-        .job-contact {
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        /* Job Details Area */
         .job-details {
             flex: 1;
             padding: 2rem;
             background: #fff;
-        }
-
-        .job-header {
-            margin-bottom: 2rem;
-        }
-
-        .job-description {
-            line-height: 1.6;
         }
 
         /* Admin Panel */
@@ -130,21 +98,19 @@
             border-radius: 0.5rem;
         }
 
-        .admin-panel h3 {
+        /* Profile Update Section */
+        .profile-update {
+            padding: 2rem;
+            background: #fff;
+            max-width: 400px;
+            margin: 2rem auto;
+            border-radius: 0.5rem;
+        }
+
+        .profile-update input {
             margin-bottom: 1rem;
-        }
-
-        .admin-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .admin-form input,
-        .admin-form textarea {
             padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            border-radius: 0.25rem;
+            width: 100%;
         }
 
         /* Authentication */
@@ -184,35 +150,8 @@
             font-size: 1rem;
         }
 
-        /* Password Protected Content */
-        .password-protected {
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .password-form {
-            max-width: 300px;
-            margin: 0 auto;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                height: 40%;
-            }
-
-            .job-details {
-                height: 60%;
-            }
-        }
     </style>
 </head>
-
 <body>
     <!-- Login Section -->
     <div class="login-section" id="loginSection" role="dialog" aria-labelledby="loginTitle">
@@ -235,8 +174,8 @@
         </p>
     </div>
 
+    <!-- Main Content -->
     <div class="container" id="mainContent" style="display: none;">
-        <!-- Sidebar with Jobs List -->
         <div class="sidebar">
             <div class="sidebar-header">
                 <div class="user-profile">
@@ -245,59 +184,65 @@
                 </div>
                 <button id="logoutBtn">Logout</button>
             </div>
+
+            <div class="job-filters">
+                <input type="text" id="searchInput" placeholder="Search jobs..." oninput="filterJobs()">
+                <select id="jobTypeFilter" onchange="filterJobs()">
+                    <option value="">All Types</option>
+                    <option value="Full-Time">Full-Time</option>
+                    <option value="Part-Time">Part-Time</option>
+                    <option value="Remote">Remote</option>
+                </select>
+                <label>
+                    <input type="checkbox" id="passwordProtectedFilter" onchange="filterJobs()"> 
+                    Only Password Protected Jobs
+                </label>
+            </div>
+
             <div class="jobs-list" id="jobsList">
                 <!-- Jobs will be populated here -->
             </div>
         </div>
 
-        <!-- Job Details Area -->
         <div class="job-details" id="jobDetails">
-            <div id="jobContent">
-                <!-- Job details will be shown here -->
-            </div>
+            <!-- Job details will be shown here -->
+        </div>
 
-            <!-- Admin Panel (only visible to admin) -->
-            <div class="admin-panel" id="adminPanel" style="display: none;">
-                <h3>Add New Job</h3>
-                <form id="addJobForm" class="admin-form">
-                    <input type="text" placeholder="Job Title" id="jobTitle" required>
-                    <input type="text" placeholder="Job Type" id="jobType" required>
-                    <textarea placeholder="Job Description" id="jobDescription" required></textarea>
-                    <input type="tel" placeholder="Contact Number" id="contactNumber" required>
-                    <div>
-                        <label>
-                            <input type="checkbox" id="requiresPassword"> Requires Password
-                        </label>
-                    </div>
-                    <input type="password" placeholder="Access Password" id="accessPassword">
-                    <button type="submit">Add Job</button>
-                </form>
-            </div>
+        <!-- Admin Panel (only visible to admin) -->
+        <div class="admin-panel" id="adminPanel" style="display: none;">
+            <h3>Add New Job</h3>
+            <form id="addJobForm" class="admin-form">
+                <input type="text" placeholder="Job Title" id="jobTitle" required>
+                <input type="text" placeholder="Job Type" id="jobType" required>
+                <textarea placeholder="Job Description" id="jobDescription" required></textarea>
+                <input type="tel" placeholder="Contact Number" id="contactNumber" required>
+                <div>
+                    <label>
+                        <input type="checkbox" id="requiresPassword"> Requires Password
+                    </label>
+                </div>
+                <input type="password" placeholder="Access Password" id="accessPassword">
+                <button type="submit">Add Job</button>
+            </form>
+        </div>
+
+        <!-- Profile Update Section -->
+        <div class="profile-update" id="profileUpdate" style="display: none;">
+            <h3>Update Profile</h3>
+            <form id="profileForm">
+                <input type="text" id="updateName" placeholder="Full Name">
+                <input type="email" id="updateEmail" placeholder="Email">
+                <button type="submit">Update Profile</button>
+            </form>
         </div>
     </div>
 
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { 
-            getDatabase, 
-            ref, 
-            set, 
-            get,
-            push, 
-            onValue,
-            update 
-        } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-        import { 
-            getAuth, 
-            signInWithEmailAndPassword,
-            signInWithPopup,
-            GoogleAuthProvider,
-            onAuthStateChanged,
-            signOut
-        } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getDatabase, ref, set, get, push, onValue, update } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+        import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCZU2eFGwZeRxbNHj7N6KqUO3i_p9ihCE0",
             authDomain: "contact-us-f905e.firebaseapp.com",
@@ -314,72 +259,89 @@
         const database = getDatabase(app);
         const provider = new GoogleAuthProvider();
 
-        let currentUser = null;
-        const ADMIN_EMAIL = 'harsh.sharma.sunil@gmail.com';
+        let user = null;
 
-        // Authentication event listeners
-        document.getElementById('credentialsForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('usernameInput').value;
-            const password = document.getElementById('passwordInput').value;
-
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                currentUser = userCredential.user;
-            } catch (error) {
-                alert('Login failed: ' + error.message);
-            }
-        });
-
-        document.getElementById('googleLoginBtn').addEventListener('click', async () => {
-            try {
-                const result = await signInWithPopup(auth, provider);
-                currentUser = result.user;
-            } catch (error) {
-                alert('Google login failed: ' + error.message);
-            }
-        });
-
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            signOut(auth);
-        });
-
-        // Auth state observer
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUser = user;
+        // Authenticate user and handle session
+        onAuthStateChanged(auth, (currentUser) => {
+            if (currentUser) {
+                user = currentUser;
                 document.getElementById('loginSection').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'flex';
-                document.getElementById('userPhoto').src = user.photoURL || 'default-avatar.png';
-                document.getElementById('userName').textContent = user.displayName || user.email;
-                
-                // Show admin panel if admin
-                document.getElementById('adminPanel').style.display = 
-                    user.email === ADMIN_EMAIL ? 'block' : 'none';
-                
+                document.getElementById('userName').textContent = currentUser.displayName || currentUser.email;
+                document.getElementById('userPhoto').src = currentUser.photoURL || 'https://via.placeholder.com/40';
                 loadJobs();
             } else {
-                currentUser = null;
+                user = null;
                 document.getElementById('loginSection').style.display = 'block';
                 document.getElementById('mainContent').style.display = 'none';
             }
         });
 
-        // Jobs functionality
-        async function loadJobs() {
+        // Google login
+        document.getElementById('googleLoginBtn').addEventListener('click', () => {
+            signInWithPopup(auth, provider).then((result) => {
+                const credential = GoogleAuthProvider.credentialFromResult(result);
+                const token = credential.accessToken;
+                const user = result.user;
+                alert(`Welcome, ${user.displayName}`);
+            }).catch((error) => {
+                console.error(error);
+            });
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            signOut(auth).then(() => {
+                alert('Logged out');
+            }).catch((error) => {
+                console.error(error);
+            });
+        });
+
+        // Filter and display jobs
+        let allJobs = [];
+        function loadJobs() {
             const jobsRef = ref(database, 'jobs');
             onValue(jobsRef, (snapshot) => {
+                allJobs = [];
                 const jobsList = document.getElementById('jobsList');
                 jobsList.innerHTML = '';
-                
+
                 snapshot.forEach((childSnapshot) => {
                     const job = {
                         id: childSnapshot.key,
                         ...childSnapshot.val()
                     };
-                    const jobElement = createJobElement(job);
-                    jobsList.appendChild(jobElement);
+                    allJobs.push(job);
                 });
+
+                filterJobs(); // Apply filters after loading jobs
+            });
+        }
+
+        function filterJobs() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const jobType = document.getElementById('jobTypeFilter').value;
+            const passwordProtected = document.getElementById('passwordProtectedFilter').checked;
+
+            const filteredJobs = allJobs.filter(job => {
+                const matchesSearch = job.title.toLowerCase().includes(searchTerm) || job.description.toLowerCase().includes(searchTerm);
+                const matchesType = jobType === "" || job.type === jobType;
+                const matchesPassword = !passwordProtected || job.requiresPassword;
+
+                return matchesSearch && matchesType && matchesPassword;
+            });
+
+            displayJobs(filteredJobs);
+        }
+
+        function displayJobs(jobs) {
+            const jobsList = document.getElementById('jobsList');
+            jobsList.innerHTML = '';
+
+            jobs.forEach(job => {
+                const jobElement = createJobElement(job);
+                jobsList.appendChild(jobElement);
             });
         }
 
@@ -396,109 +358,50 @@
         }
 
         function showJobDetails(job) {
-            const jobContent = document.getElementById('jobContent');
-            
-            if (job.requiresPassword && currentUser.email !== ADMIN_EMAIL) {
-                jobContent.innerHTML = `
-                    <div class="password-protected">
-                        <h3>This job requires a password</h3>
-                        <form class="password-form" id="jobPasswordForm">
-                            <input type="password" placeholder="Enter password" required>
-                            <button type="submit">View Details</button>
-                        </form>
-                    </div>
-                `;
-
-                document.getElementById('jobPasswordForm').onsubmit = (e) => {
-                    e.preventDefault();
-                    const enteredPassword = e.target.querySelector('input').value;
-                    checkJobPassword(job, enteredPassword);
-                };
-            } else {
-                displayJobDetails(job);
-            }
-        }
-
-        function displayJobDetails(job) {
-            const jobContent = document.getElementById('jobContent');
-            jobContent.innerHTML = `
-                <div class="job-header">
-                    <h2>${job.title}</h2>
-                    <p class="job-type">${job.type}</p>
-                    <p class="job-contact">Contact: ${job.contactNumber}</p>
-                </div>
-                <div class="job-description">
-                    ${job.description}
-                </div>
+            const jobDetails = document.getElementById('jobDetails');
+            jobDetails.innerHTML = `
+                <h3>${job.title}</h3>
+                <p>${job.description}</p>
+                <p><strong>Type:</strong> ${job.type}</p>
+                <p><strong>Contact:</strong> ${job.contactNumber}</p>
+                ${job.requiresPassword ? `<p><strong>Password Required</strong>: ${job.accessPassword}</p>` : ''}
             `;
-
-            // Add password toggle button for admin
-            if (currentUser.email === ADMIN_EMAIL) {
-                const toggleBtn = document.createElement('button');
-                toggleBtn.textContent = job.requiresPassword ? 'Remove Password Protection' : 'Add Password Protection';
-                toggleBtn.onclick = () => togglePasswordProtection(job);
-                jobContent.appendChild(toggleBtn);
-            }
         }
 
-        async function togglePasswordProtection(job) {
-            const newPassword = job.requiresPassword ? null : prompt('Enter password for protection:');
-            if (newPassword === null && !job.requiresPassword) return;
-
-            try {
-                await update(ref(database, `jobs/${job.id}`), {
-                    requiresPassword: !job.requiresPassword,
-                    password: newPassword || null
-                });
-                alert(job.requiresPassword ? 'Password protection removed' : 'Password protection added');
-            } catch (error) {
-                alert('Error updating password protection: ' + error.message);
-            }
-        }
-
-        function checkJobPassword(job, enteredPassword) {
-            if (enteredPassword === job.password) {
-                displayJobDetails(job);
-            } else {
-                alert('Incorrect password');
-            }
-        }
-
-        // Admin functionality
-        document.getElementById('requiresPassword').addEventListener('change', (e) => {
-            const passwordInput = document.getElementById('accessPassword');
-            passwordInput.style.display = e.target.checked ? 'block' : 'none';
-            passwordInput.required = e.target.checked;
-        });
-
-        document.getElementById('addJobForm').addEventListener('submit', async (e) => {
+        // Profile Update
+        document.getElementById('profileForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            
-            if (currentUser.email !== ADMIN_EMAIL) {
-                alert('Only admin can add jobs');
-                return;
-            }
+            const name = document.getElementById('updateName').value;
+            const email = document.getElementById('updateEmail').value;
 
-            const requiresPassword = document.getElementById('requiresPassword').checked;
-            const jobData = {
-                title: document.getElementById('jobTitle').value,
-                type: document.getElementById('jobType').value,
-                description: document.getElementById('jobDescription').value,
-                contactNumber: document.getElementById('contactNumber').value,
-                requiresPassword: requiresPassword,
-                password: requiresPassword ? document.getElementById('accessPassword').value : null,
-                timestamp: Date.now()
-            };
-
-            try {
-                await push(ref(database, 'jobs'), jobData);
-                e.target.reset();
-                alert('Job added successfully');
-            } catch (error) {
-                alert('Error adding job: ' + error.message);
+            if (name && email && user) {
+                const userRef = ref(database, 'users/' + user.uid);
+                update(userRef, {
+                    name: name,
+                    email: email
+                }).then(() => {
+                    alert('Profile updated successfully');
+                    loadProfileData();
+                }).catch((error) => {
+                    alert('Error updating profile: ' + error.message);
+                });
             }
         });
+
+        function loadProfileData() {
+            if (user) {
+                const userRef = ref(database, 'users/' + user.uid);
+                get(userRef).then(snapshot => {
+                    const userData = snapshot.val();
+                    document.getElementById('updateName').value = userData ? userData.name : '';
+                    document.getElementById('updateEmail').value = userData ? userData.email : '';
+                });
+            }
+        }
+
+        // Load the profile data
+        loadProfileData();
+
     </script>
 </body>
-
 </html>
